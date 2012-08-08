@@ -9,7 +9,7 @@ data_dir = '/Users/emonson/Data/ArtMarkets/Katie'
 catalogue_file = 'Whitney_ListOfCatalogues.tsv'
 catalogue_path = os.path.join(data_dir, catalogue_file)
 
-data_file = 'Smith_20120801_rev3.txt'
+data_file = 'Smith_20120801_rev4.txt'
 data_path = os.path.join(data_dir, data_file)
 
 re_name = re.compile(r'^[A-Z]')
@@ -22,6 +22,7 @@ c = conn.cursor()
 c.execute("DROP TABLE IF EXISTS catalogues")
 c.execute("DROP TABLE IF EXISTS artists")
 c.execute("DROP TABLE IF EXISTS addresses")
+c.execute("DROP TABLE IF EXISTS show_artist_addresses")
 c.execute("DROP TABLE IF EXISTS artworks")
 
 # Create tables
@@ -43,12 +44,18 @@ c.execute('''CREATE TABLE artists(
 )''')
 
 c.execute('''CREATE TABLE addresses(
+	address_id INTEGER PRIMARY KEY AUTOINCREMENT,
+	address_text TEXT
+)''')
+
+c.execute('''CREATE TABLE show_artist_addresses(
 	show_id TEXT,
 	artist_id INTEGER,
-	address_text TEXT,
+	address_id INTEGER,
 	PRIMARY KEY (show_id, artist_id),
 	FOREIGN KEY (show_id) REFERENCES catalogues(show_id),
-	FOREIGN KEY (artist_id) REFERENCES artists(artist_id)
+	FOREIGN KEY (artist_id) REFERENCES artists(artist_id),
+	FOREIGN KEY (address_id) REFERENCES addresses(address_id)
 )''')
 
 c.execute('''CREATE TABLE artworks(
@@ -82,8 +89,9 @@ for line in codecs.open(catalogue_path, 'r', 'utf-8-sig'):
 	c.execute("INSERT INTO catalogues (show_id, show_year, show_dates_text, show_title, num_pieces) VALUES (?, ?, ?, ?, ?)", (tag, year, date_range, title, n_pieces))
 
 # Artwork Index by Artist
+address_ids = {}
 print "Loading Data into DB"
-for ii,line in enumerate(codecs.open(data_path, 'r', 'utf-8-sig')):
+for ii,line in enumerate(codecs.open(data_path, 'r', 'utf-8')):
 	if ii % 1000 == 0:
 		print ii
 	
@@ -99,7 +107,13 @@ for ii,line in enumerate(codecs.open(data_path, 'r', 'utf-8-sig')):
 	elif address_match:
 		show_id = address_match.groups()[0]
 		address_text = address_match.groups()[1]
-		c.execute("INSERT INTO addresses (show_id, artist_id, address_text) VALUES (?,?,?)", (show_id, artist_id, address_text))
+		if address_text not in address_ids:
+			c.execute("INSERT INTO addresses (address_text) VALUES (?)", (address_text,))
+			address_id = c.lastrowid
+			address_ids[address_text] = address_id
+		else:
+			address_id = address_ids[address_text]
+		c.execute("INSERT INTO show_artist_addresses (show_id, artist_id, address_id) VALUES (?,?,?)", (show_id, artist_id, address_id))
 		
 	elif artwork_match:
 		piece_number = artwork_match.groups()[0]
