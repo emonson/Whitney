@@ -12,10 +12,14 @@ catalogue_path = os.path.join(data_dir, catalogue_file)
 data_file = 'Smith_20120801_rev4.txt'
 data_path = os.path.join(data_dir, data_file)
 
+db_name = 'Whitney.sqlite'
+db_path = os.path.join(data_dir, db_name)
+
 re_name = re.compile(r'^[A-Z]')
 re_address = re.compile(r'^([0-9]{4}(?:-(?:1|2|3|II))?) Address: (.+?)$')
 re_artwork = re.compile(r'^([0-9]{1,3})\. (.*?)$')
-conn = sqlite3.connect('whitney.db')
+
+conn = sqlite3.connect(db_path)
 c = conn.cursor()
 
 # WARNING: Deleting all tables!!
