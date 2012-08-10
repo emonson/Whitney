@@ -1,1 +1,2 @@
-Scripts for Katie's Whitney database
+Scripts for generating Katie's Whitney database
+from OCR results.
