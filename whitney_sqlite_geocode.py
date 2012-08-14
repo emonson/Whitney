@@ -27,12 +27,55 @@ catalogue_path = os.path.join(data_dir, catalogue_file)
 data_file = 'Smith_20120801_rev5.txt'
 data_path = os.path.join(data_dir, data_file)
 
-db_name = 'Whitney_20120813.sqlite'
+db_name = 'Whitney_20120814.sqlite'
 db_path = os.path.join(data_dir, db_name)
 
 re_name = re.compile(r'^[A-Z]')
 re_address = re.compile(r'^([0-9]{4}(?:-(?:1|2|3|II))?) Address: (.+?)$')
 re_artwork = re.compile(r'^([0-9]{1,3})\. (.*?)$')
+
+# US Census Bureau Regions & Divisions
+us_regions = {}
+us_divisions = {}
+
+# Northeast
+states = 'Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island, Vermont, New Jersey, New York, Pennsylvania'
+us_regions['Northeastern'] = map(str.strip, states.split(','))
+
+states = 'Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island, Vermont'
+us_divisions['New England'] = map(str.strip, states.split(','))
+states = 'New Jersey, New York, Pennsylvania'
+us_divisions['Mid-Atlantic'] = map(str.strip, states.split(','))
+
+# Midwest
+states = 'Illinois, Indiana, Iowa, Kansas, Michigan, Minnesota, Missouri, Nebraska, North Dakota, Ohio, South Dakota, Wisconsin'
+us_regions['Midwestern'] = map(str.strip, states.split(','))
+
+states = 'Michigan, Ohio, Indiana, Illinois, Minnesota, Wisconsin'
+us_divisions['East North Central'] = map(str.strip, states.split(','))
+states = 'Iowa, Missouri, North Dakota, South Dakota, Nebraska, Kansas'
+us_divisions['West North Central'] = map(str.strip, states.split(','))
+
+# West
+states = 'Alaska, Arizona, California, Colorado, Hawaii, Idaho, Montana, Nevada, New Mexico, Oregon, Utah, Washington, Wyoming'
+us_regions['Western'] = map(str.strip, states.split(','))
+
+states = 'Arizona, Colorado, Idaho, Montana, Nevada, New Mexico, Utah, Wyoming'
+us_divisions['Mountain'] = map(str.strip, states.split(','))
+states = 'Alaska, California, Hawaii, Oregon, Washington'
+us_divisions['Pacific'] = map(str.strip, states.split(','))
+
+# South
+states = 'Florida, Georgia, Maryland, District of Columbia, North Carolina, South Carolina, Virginia, West Virginia, Delaware, Alabama, Kentucky, Mississippi, Tennessee, Arkansas, Louisiana, Oklahoma, Texas'
+us_regions['Southern'] = map(str.strip, states.split(','))
+
+states = 'Florida, Georgia, Maryland, District of Columbia, North Carolina, South Carolina, Virginia, West Virginia, Delaware'
+us_divisions['South Atlantic'] = map(str.strip, states.split(','))
+states = 'Alabama, Kentucky, Mississippi, Tennessee'
+us_divisions['East South Central'] = map(str.strip, states.split(','))
+states = 'Arkansas, Louisiana, Oklahoma, Texas'
+us_divisions['West South Central'] = map(str.strip, states.split(','))
+
 
 conn = sqlite3.connect(db_path)
 c = conn.cursor()
@@ -80,6 +123,8 @@ c.execute(''' CREATE TABLE yahoo_geocodes(
 	city TEXT,
 	state TEXT,
 	country TEXT,
+	us_region TEXT,
+	us_division TEXT,
 	FOREIGN KEY (address_id) REFERENCES addresses(address_id)
 )''')
 
@@ -195,8 +240,6 @@ for ii,line in enumerate(codecs.open(data_path, 'r', 'utf-8')):
 			address_id = c.lastrowid
 			address_ids[address_text] = address_id
 
-			# DEBUG
-			print 'address:', address_id, '-' + address_text + '-'
 			# Geocode
 			
 			# First check if the item info is already in our own database
@@ -204,6 +247,8 @@ for ii,line in enumerate(codecs.open(data_path, 'r', 'utf-8')):
 
 			# Only hit Yahoo if address is not in MongoDB
 			if geo_dict is None:
+				# DEBUG
+				print 'address:', address_id, '-' + address_text + '-'
 				geo_resultset_json = geocode_address(address_text)
 				# NOTE: This will just error out if yahoo returns nothing...
 				try:
@@ -228,6 +273,8 @@ for ii,line in enumerate(codecs.open(data_path, 'r', 'utf-8')):
 					city = None
 					state = None
 					country = None
+					us_region = None
+					us_division = None
 					if 'quality' in gr: quality = gr['quality']
 					if 'latitude' in gr: latitude = gr['latitude']
 					if 'longitude' in gr: longitude = gr['longitude']
@@ -235,7 +282,16 @@ for ii,line in enumerate(codecs.open(data_path, 'r', 'utf-8')):
 					if 'city' in gr: city = gr['city']
 					if 'state' in gr: state = gr['state']
 					if 'country' in gr: country = gr['country']
-					c.execute("INSERT INTO yahoo_geocodes (	address_id, quality, multiples_rank, latitude, longitude, radius, city, state, country) VALUES (?,?,?,?,?,?,?,?,?)", (address_id, quality, multiples_rank, longitude, latitude, radius, city, state, country))
+					# US Regions & Divisions
+					for region, state_list in us_regions.items():
+						if state in state_list:
+							us_region = region
+							break
+					for division, state_list in us_divisions.items():
+						if state in state_list:
+							us_division = division
+							break
+					c.execute("INSERT INTO yahoo_geocodes (	address_id, quality, multiples_rank, latitude, longitude, radius, city, state, country, us_region, us_division) VALUES (?,?,?,?,?,?,?,?,?,?,?)", (address_id, quality, multiples_rank, longitude, latitude, radius, city, state, country, us_region, us_division))
 		else:
 			address_id = address_ids[address_text]
 		c.execute("INSERT INTO show_artist_addresses (show_id, artist_id, address_id) VALUES (?,?,?)", (show_id, artist_id, address_id))
