@@ -19,16 +19,17 @@ except ConnectionFailure:
 
 db = db_conn['whitney']
 
-data_dir = '/Users/emonson/Data/ArtMarkets/Katie'
+# data_dir = '/Users/emonson/Data/ArtMarkets/Katie'
+script_dir = '/Users/emonson/Programming/ArtMarkets/Whitney'
 
 catalogue_file = 'Whitney_ListOfCatalogues.tsv'
-catalogue_path = os.path.join(data_dir, catalogue_file)
+catalogue_path = os.path.join(script_dir, catalogue_file)
 
-data_file = 'Smith_20120801_rev5.txt'
-data_path = os.path.join(data_dir, data_file)
+data_file = 'Whitney_BookOCR.txt'
+data_path = os.path.join(script_dir, data_file)
 
-db_name = 'Whitney_20120814.sqlite'
-db_path = os.path.join(data_dir, db_name)
+db_name = 'Whitney_DB.sqlite'
+db_path = os.path.join(script_dir, db_name)
 
 re_name = re.compile(r'^[A-Z]')
 re_address = re.compile(r'^([0-9]{4}(?:-(?:1|2|3|II))?) Address: (.+?)$')
