@@ -89,6 +89,7 @@ c.execute("DROP TABLE IF EXISTS addresses")
 c.execute("DROP TABLE IF EXISTS yahoo_geocodes")
 c.execute("DROP TABLE IF EXISTS show_artist_addresses")
 c.execute("DROP TABLE IF EXISTS artworks")
+conn.commit()
 
 # Create tables
 c.execute('''CREATE TABLE catalogues(
@@ -153,6 +154,7 @@ c.execute('''CREATE TABLE artworks(
 	FOREIGN KEY (show_id) REFERENCES catalogues(show_id),
 	FOREIGN KEY (artist_id) REFERENCES artists(artist_id)
 )''')
+conn.commit()
 
 def str_int(s):
 	try:

@@ -4,15 +4,15 @@ import codecs
 import sqlite3
 import exceptions
 
-data_dir = '/Users/emonson/Data/ArtMarkets/Katie'
+data_dir = '/Users/emonson/Programming/ArtMarkets/Whitney'
 
 catalogue_file = 'Whitney_ListOfCatalogues.tsv'
 catalogue_path = os.path.join(data_dir, catalogue_file)
 
-data_file = 'Smith_20120801_rev4.txt'
+data_file = 'Whitney_BookOCR.txt'
 data_path = os.path.join(data_dir, data_file)
 
-db_name = 'Whitney.sqlite'
+db_name = 'WhitneyBasic_DB.sqlite'
 db_path = os.path.join(data_dir, db_name)
 
 re_name = re.compile(r'^[A-Z]')
@@ -28,6 +28,7 @@ c.execute("DROP TABLE IF EXISTS artists")
 c.execute("DROP TABLE IF EXISTS addresses")
 c.execute("DROP TABLE IF EXISTS show_artist_addresses")
 c.execute("DROP TABLE IF EXISTS artworks")
+conn.commit()
 
 # Create tables
 c.execute('''CREATE TABLE catalogues(
@@ -74,6 +75,7 @@ c.execute('''CREATE TABLE artworks(
 	FOREIGN KEY (show_id) REFERENCES catalogues(show_id),
 	FOREIGN KEY (artist_id) REFERENCES artists(artist_id)
 )''')
+conn.commit()
 
 def str_int(s):
 	try:
