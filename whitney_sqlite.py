@@ -35,6 +35,8 @@ c.execute('''CREATE TABLE catalogues(
 	show_id TEXT PRIMARY KEY,
 	show_year INTEGER,
 	show_dates_text TEXT,
+	show_start_date TEXT,
+	show_end_date TEXT,
 	show_title TEXT,
 	num_pieces INTEGER
 )''')
@@ -85,14 +87,17 @@ def str_int(s):
 
 # Catalogues
 print "Loading Catalogues into DB"
-for line in codecs.open(catalogue_path, 'r', 'utf-8-sig'):
+fin = codecs.open(catalogue_path, 'r', 'utf-8-sig')
+for line in fin:
 	fields = line.rstrip().split('\t')
 	tag = fields[0]
-	year = int(tag[:4])
-	date_range = fields[1]
-	title = fields[2]
-	n_pieces = str_int(fields[3])
-	c.execute("INSERT INTO catalogues (show_id, show_year, show_dates_text, show_title, num_pieces) VALUES (?, ?, ?, ?, ?)", (tag, year, date_range, title, n_pieces))
+	year = int(fields[1])
+	date_range = fields[2]
+	start_date = fields[3]
+	end_date = fields[4]
+	title = fields[5]
+	n_pieces = str_int(fields[6])
+	c.execute("INSERT INTO catalogues (show_id, show_year, show_dates_text, show_start_date, show_end_date, show_title, num_pieces) VALUES (?, ?, ?, ?, ?, ?, ?)", (tag, year, date_range, start_date, end_date, title, n_pieces))
 
 # Artwork Index by Artist
 address_ids = {}
